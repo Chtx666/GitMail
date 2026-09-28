@@ -3,5 +3,6 @@
 int main() {
     Init();
     LogIn();
+    Process();
     return 0;
 }
