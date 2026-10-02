@@ -64,7 +64,7 @@ void Process() {
 }
 
 void Receive() {
-    system(("git -C " + DATA_REPO_PATH + " fetch origin " + accountName).c_str());
+    system(("git -C " + DATA_REPO_PATH + " fetch origin").c_str());
     string status = RunCmd("git -C " + DATA_REPO_PATH + " rev-list --count HEAD..origin/" + accountName);
     while (!status.empty() && (status.back() == '\n' || status.back() == '\r'))
         status.pop_back();
@@ -118,7 +118,7 @@ void Send() {
         cout << "User doesn't exist.\n";
         return;
     } 
-    system(("git -C " + DATA_REPO_PATH + " fetch origin " + sendTo).c_str());
+    system(("git -C " + DATA_REPO_PATH + " fetch origin").c_str());
     system(("git -C " + DATA_REPO_PATH + " switch " + sendTo).c_str());
     system(("git -C " + DATA_REPO_PATH + " pull origin " + sendTo).c_str());
 
