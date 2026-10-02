@@ -1,7 +1,6 @@
 # pragma once
 
 #include <string>
-using namespace std;
 
 #ifdef _WIN32
     #define POPEN  _popen
@@ -11,12 +10,15 @@ using namespace std;
     #define PCLOSE pclose
 #endif
 
-inline const char* dataRepoName = "GitMail-Server";
+inline const char* DATA_REPO_NAME = "GitMail-Server";
+inline std::string DATA_REPO_PATH;
+inline const std::string END_MARK = "<<END>>";
 inline bool isLogIn;
-inline string accountName;
+inline std::string accountName;
 
 void Init();
 void LogIn();
 void Process();
 void Receive();
-string RunCmd(const string& cmd);
+std::string RunCmd(const std::string& cmd);
+void Send();
