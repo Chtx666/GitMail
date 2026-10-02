@@ -19,21 +19,21 @@ void LogIn() {
     cin >> accountName;
     
     if (!(filesystem::exists(DATA_REPO_PATH) && filesystem::is_directory(DATA_REPO_PATH))) 
-        system(("git clone https://github.com/Chtx666/" + string(DATA_REPO_NAME) + ".git").c_str());
+        RunCmd("git clone https://github.com/Chtx666/" + string(DATA_REPO_NAME) + ".git");
     
     string r = RunCmd("git -C " + DATA_REPO_PATH + " ls-remote --heads origin refs/heads/" + accountName);
     
     if (r.empty()) {
-        system(("git -C " + DATA_REPO_PATH + " switch -c " + accountName).c_str());
+        RunCmd("git -C " + DATA_REPO_PATH + " switch -c " + accountName);
         cout << "Sign up successfully.\n";
         ofstream f(DATA_REPO_PATH + "/hello_world.txt");
         f << "Hello, " << accountName << "!\n";
         f.close();
-        system(("git -C " + DATA_REPO_PATH + " add .").c_str());
-        system(("git -C " + DATA_REPO_PATH + " commit -m \"Create account: " + accountName + "\"").c_str());
-        system(("git -C " + DATA_REPO_PATH + " push -u origin " + accountName).c_str());
+        RunCmd("git -C " + DATA_REPO_PATH + " add .");
+        RunCmd("git -C " + DATA_REPO_PATH + " commit -m \"Create account: " + accountName + "\"");
+        RunCmd("git -C " + DATA_REPO_PATH + " push -u origin " + accountName);
     } else {
-        system(("git -C " + DATA_REPO_PATH + " switch " + accountName).c_str());
+        RunCmd("git -C " + DATA_REPO_PATH + " switch " + accountName);
         cout << "Account exists. Log in automatically.\n";
     }
     
@@ -64,15 +64,15 @@ void Process() {
 }
 
 void Receive() {
-    system(("git -C " + DATA_REPO_PATH + " fetch origin").c_str());
+    RunCmd("git -C " + DATA_REPO_PATH + " fetch origin");
     string status = RunCmd("git -C " + DATA_REPO_PATH + " rev-list --count HEAD..origin/" + accountName);
     while (!status.empty() && (status.back() == '\n' || status.back() == '\r'))
         status.pop_back();
     cout << status + " new GMail.\n";
     if (status == "0") return;
     
-    system(("git -C " + DATA_REPO_PATH + " pull origin " + string(accountName)).c_str());
-    string added = RunCmd(("git -C " + DATA_REPO_PATH + " diff --name-only --diff-filter=A ORIG_HEAD HEAD").c_str());
+    RunCmd("git -C " + DATA_REPO_PATH + " pull origin " + string(accountName));
+    string added = RunCmd("git -C " + DATA_REPO_PATH + " diff --name-only --diff-filter=A ORIG_HEAD HEAD");
     
     istringstream iss(added);
     string filename;
@@ -89,10 +89,12 @@ void Receive() {
 string RunCmd(const string& cmd) {
     string out;
     char buf[256];
-    FILE* p = POPEN(cmd.c_str(), "r");
+    FILE* p = POPEN((cmd + " 2>&1").c_str(), "r");
     if (!p) return "";
     while (fgets(buf, sizeof buf, p)) out += buf;
     PCLOSE(p);
+    ofstream log("log.txt", ios::app);
+    log << out;
     return out;
 }
 
@@ -118,16 +120,16 @@ void Send() {
         cout << "User doesn't exist.\n";
         return;
     } 
-    system(("git -C " + DATA_REPO_PATH + " fetch origin").c_str());
-    system(("git -C " + DATA_REPO_PATH + " switch " + sendTo).c_str());
-    system(("git -C " + DATA_REPO_PATH + " pull origin " + sendTo).c_str());
+    RunCmd("git -C " + DATA_REPO_PATH + " fetch origin");
+    RunCmd("git -C " + DATA_REPO_PATH + " switch " + sendTo);
+    RunCmd("git -C " + DATA_REPO_PATH + " pull origin " + sendTo);
 
     ofstream f(DATA_REPO_PATH + "/" + title + ".txt");
     f << sendContent;
     f.close();
 
-    system(("git -C " + DATA_REPO_PATH + " add .").c_str());
-    system(("git -C " + DATA_REPO_PATH + " commit -m \"" + title + "\"").c_str());
-    system(("git -C " + DATA_REPO_PATH + " push origin " + sendTo).c_str());
-    system(("git -C " + DATA_REPO_PATH + " switch " + accountName).c_str());
+    RunCmd("git -C " + DATA_REPO_PATH + " add .");
+    RunCmd("git -C " + DATA_REPO_PATH + " commit -m \"" + title + "\"");
+    RunCmd("git -C " + DATA_REPO_PATH + " push origin " + sendTo);
+    RunCmd("git -C " + DATA_REPO_PATH + " switch " + accountName);
 }
