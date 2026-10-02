@@ -21,21 +21,24 @@ void LogIn() {
     if (!(filesystem::exists(DATA_REPO_PATH) && filesystem::is_directory(DATA_REPO_PATH))) 
         system(("git clone https://github.com/Chtx666/" + string(DATA_REPO_NAME) + ".git").c_str());
     
-    if (system(("git -C " + DATA_REPO_PATH + " switch -c " + accountName).c_str()) != 0) {
+    // 查远程是否有该账号分支（完整 ref 名，避免 pattern 匹配坑）
+    string r = RunCmd("git -C " + DATA_REPO_PATH + " ls-remote --heads origin refs/heads/" + accountName);
+    
+    if (r.empty()) {
+        // 新账号：建分支 + 注册
+        system(("git -C " + DATA_REPO_PATH + " switch -c " + accountName).c_str());
+        cout << "Sign up successfully.\n";
+        ofstream f(DATA_REPO_PATH + "/hello_world.txt");
+        f << "Hello, " << accountName << "!\n";
+        f.close();
+        system(("git -C " + DATA_REPO_PATH + " add .").c_str());
+        system(("git -C " + DATA_REPO_PATH + " commit -m \"Create account: " + accountName + "\"").c_str());
+        system(("git -C " + DATA_REPO_PATH + " push -u origin " + accountName).c_str());
+    } else {
+        // 老账号：直接切过去
         system(("git -C " + DATA_REPO_PATH + " switch " + accountName).c_str());
         cout << "Account exists. Log in automatically.\n";
-        isLogIn = true;
-        return;
     }
-    
-    cout << "Sign up successfully.\n";
-    ofstream f(DATA_REPO_PATH + "/hello_world.txt");
-    f << "Hello, " << accountName << "!\n";
-    f.close();
-    
-    system(("git -C " + DATA_REPO_PATH + " add .").c_str());
-    system(("git -C " + DATA_REPO_PATH + " commit -m \"Create account: " + accountName + "\"").c_str());
-    system(("git -C " + DATA_REPO_PATH + " push -u origin " + accountName).c_str());
     
     cout << "Confirm your User ID: " << accountName << "\n";
     isLogIn = true;
@@ -113,7 +116,7 @@ void Send() {
         sendContent += line + "\n";
     }
     
-    string r = RunCmd("git -C " + DATA_REPO_PATH + " ls-remote --heads origin " + sendTo);
+    string r = RunCmd("git -C " + DATA_REPO_PATH + " ls-remote --heads origin refs/heads/" + sendTo);
     if (r.empty()) {
         cout << "User doesn't exist.\n";
         return;
